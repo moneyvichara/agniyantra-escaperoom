@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Agni Yantra: Final Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1a2a;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            background-image: radial-gradient(circle at center, #1a202c, #0b1a2a);
+            padding-bottom: 5rem; /* Padding for the fixed footer */
+        }
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #1a202c;
+            border: 2px solid #2d3748;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            backdrop-filter: blur(5px);
+            background-image: linear-gradient(135deg, #1a202c 0%, #1a202c 50%, rgba(26, 32, 44, 0.9) 100%);
+            flex-grow: 1; /* Allows it to take up available space */
+        }
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ef4444;
+            margin-bottom: 1rem;
+        }
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .puzzle-grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+        }
+        .puzzle-tile {
+            width: 100%;
+            height: 100%;
+            background-color: #2d3748;
+            border: 1px solid #4a5568;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .puzzle-tile:hover {
+            background-color: #4a5568;
+            transform: scale(1.05);
+        }
+        .maze-tile {
+            position: relative;
+            background-color: #2d3748;
+            border: 1px solid #4a5568;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .maze-tile:hover {
+            background-color: #4a5568;
+        }
+        .maze-path {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotate(0deg);
+        }
+        .maze-path svg {
+            width: 100%;
+            height: 100%;
+        }
+        .maze-path path {
+            fill: none;
+            stroke: #48bb78;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+        .start-tile {
+            background-color: #38a169;
+        }
+        .end-tile {
+            background-color: #e53e3e;
+        }
+        .magic-square-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 2px solid #a0aec0;
+            width: 100%;
+            max-width: 300px;
+            margin: 1rem auto;
+        }
+        .magic-square-cell {
+            width: 100%;
+            padding-top: 100%; /* creates a square aspect ratio */
+            position: relative;
+            border: 1px solid #4a5568;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+            cursor: grab;
+            transition: background-color 0.2s;
+        }
+        .magic-square-cell:hover {
+            background-color: #4a5568;
+        }
+        .morse-light {
+            width: 50px;
+            height: 50px;
+            background-color: #4a5568;
+            border-radius: 50%;
+            margin: 1rem auto;
+            transition: background-color 0.1s;
+        }
+        .blinking {
+            background-color: #63b3ed;
+        }
+        .color-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-button.highlight {
+            border-color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .color-grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            width: 330px;
+            margin: 20px auto;
+        }
+        .status-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #4a5568;
+            border-radius: 9999px;
+            margin-top: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .status-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 1s ease-in-out;
+        }
+        .start-protocol-btn, .tutorial-btn {
+            background-image: linear-gradient(to right, #38a169, #48bb78, #38a169);
+            animation: pulse-green 2s infinite;
+        }
+        .start-protocol-btn:hover, .tutorial-btn:hover {
+            animation: none;
+            background-image: linear-gradient(to right, #48bb78, #5eead4, #48bb78);
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(56, 161, 105, 0); }
+        }
+
+        /* Tutorial Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #1a202c;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            color: #e2e8f0;
+            text-align: left;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border: 2px solid #2d3748;
+        }
+        
+        /* Persistent Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1a202c;
+            color: #718096;
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #2d3748;
+            font-size: 0.875rem;
+        }
+        .footer a {
+            color: #63b3ed;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="landing-page">
+        <h1 class="text-4xl font-bold mb-4 text-blue-300">The Agni Yantra: Final Protocol</h1>
+        <p class="mb-6 text-lg text-gray-300">A Maya virus has infiltrated the core system of the Agni Yantra space station. Oxygen levels are dropping, temperatures are rising, and the power supply is failing. You must activate the final protocol and launch the escape pod before it's too late.</p>
+
+        <!-- Status Bars for Landing Page (hidden on start) -->
+        <div id="vitals-landing" class="space-y-4">
+            <div class="text-left">
+                <span class="font-semibold text-green-400">Oxygen Level:</span>
+                <div class="status-bar">
+                    <div id="oxygen-bar-landing" class="status-fill bg-green-500" style="width: 100%;"></div>
+                </div>
+            </div>
+            <div class="text-left">
+                <span class="font-semibold text-yellow-400">Temperature:</span>
+                <div class="status-bar">
+                    <div id="temp-bar-landing" class="status-fill bg-yellow-500" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="text-left">
+                <span class="font-semibold text-red-400">Power System:</span>
+                <div class="status-bar">
+                    <div id="power-bar-landing" class="status-fill bg-red-500" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-center items-center mt-8 space-y-4 md:space-y-0 md:space-x-4">
+            <button id="start-btn" class="start-protocol-btn px-8 py-4 text-lg font-bold text-white rounded-full shadow-lg transition-transform duration-200">Start Protocol</button>
+            <button id="tutorial-btn" class="tutorial-btn bg-blue-500 hover:bg-blue-600 px-8 py-4 text-lg font-bold text-white rounded-full shadow-lg transition-transform duration-200">Mission Briefing</button>
+        </div>
+    </div>
+
+    <div id="game-page" class="hidden">
+        <p id="timer-display" class="timer-display"></p>
+        
+        <!-- Updated Always Visible Vitals Bars for Gameplay -->
+        <div id="vitals-game" class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mb-4">
+            <div class="flex-1 text-left">
+                <span class="font-semibold text-green-400 text-sm">Oxygen:</span>
+                <div class="status-bar">
+                    <div id="oxygen-bar-game" class="status-fill bg-green-500" style="width: 100%;"></div>
+                </div>
+            </div>
+            <div class="flex-1 text-left">
+                <span class="font-semibold text-yellow-400 text-sm">Temp:</span>
+                <div class="status-bar">
+                    <div id="temp-bar-game" class="status-fill bg-yellow-500" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="flex-1 text-left">
+                <span class="font-semibold text-red-400 text-sm">Power:</span>
+                <div class="status-bar">
+                    <div id="power-bar-game" class="status-fill bg-red-500" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h2 id="keys-collected-display" class="text-xl font-semibold mb-2 text-gray-400">Keys Collected: 0 / 8</h2>
+            <h3 id="puzzle-title" class="text-lg font-medium text-blue-300"></h3>
+        </div>
+
+        <div id="puzzle-area">
+            <!-- Puzzle content will be rendered here -->
+        </div>
+
+        <div id="message-area" class="mt-4 h-8">
+            <!-- Messages will appear here -->
+        </div>
+
+        <div id="navigation-buttons" class="mt-8 flex justify-center space-x-4">
+            <!-- Navigation buttons will appear here -->
+        </div>
+    </div>
+</div>
+
+<!-- Tutorial Modal -->
+<div id="tutorial-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2 class="text-2xl font-bold mb-4 text-blue-300">Mission Briefing</h2>
+        <p class="mb-4 text-gray-300">Welcome, Commander. The Agni Yantra space station has been compromised. You have **15 minutes** to solve all the puzzles and activate the escape pod launch protocol before the station fails.</p>
+        
+        <h3 class="text-lg font-bold mb-2 text-green-400">Your Vitals</h3>
+        <p class="mb-4 text-gray-300">Keep an eye on the **Oxygen**, **Temperature**, and **Power** bars. Solving puzzles will stabilize the system.</p>
+
+        <h3 class="text-lg font-bold mb-2 text-yellow-400">Keys & Puzzles</h3>
+        <p class="mb-4 text-gray-300">There are 8 keys to collect. Each key is a solved puzzle. Once a puzzle is solved, you cannot return to it.</p>
+        
+        <h3 class="text-lg font-bold mb-2 text-red-400">Navigation</h3>
+        <ul class="list-disc list-inside mb-4 space-y-2 text-gray-300">
+            <li><span class="font-bold text-blue-400">Submit:</span> Check your answer for the current puzzle.</li>
+            <li><span class="font-bold text-blue-400">Skip:</span> You have one skip available. If a puzzle is too difficult, you can skip it and come back later via the "Previous Puzzle" button.</li>
+            <li><span class="font-bold text-blue-400">Previous Puzzle:</span> This button appears after a puzzle is skipped, allowing you to return to the last skipped puzzle.</li>
+        </ul>
+
+        <p class="text-center mt-6">
+            <button id="close-tutorial-btn" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg transition-transform duration-200 hover:scale-105">Understood. Begin Mission!</button>
+        </p>
+    </div>
+</div>
+
+<footer class="footer">
+    Designed by - Vishweshwar Mensumane - <a href="http://moneyvichara.blogspot.com" target="_blank">moneyvichara.blogspot.com</a>
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Game State and Initialization ---
+        const GAME_DURATION = 900; // 15 minutes in seconds
+        let timerInterval;
+        let oxygenLevel = 100;
+        let temperature = 0;
+        let powerLevel = 100;
+        let vitalsInterval;
+
+        const gameState = {
+            keysCollected: 0,
+            skipsUsed: 0,
+            currentPuzzleIndex: 0,
+            previousPuzzleIndex: -1, // New state variable to track the previously skipped puzzle
+            timeLeft: GAME_DURATION,
+            puzzles: [
+                { id: 'number-sequence', name: 'Oxygen Flow Recalibration' },
+                { id: 'color-sequence', name: 'System Core Initialization' },
+                { id: 'email-archive', name: 'Maya Virus Log Decryption' },
+                { id: 'radiation-shield', name: 'Radiation Shield Assembly' },
+                { id: 'number-grid', name: 'Thermodynamic Matrix' },
+                { id: 'ciphered-riddle', name: 'Emergency Diagnostic Riddle' },
+                { id: 'morse-code', name: 'Distress Signal Activation' },
+                { id: 'word-scramble', name: 'System Reset Password' },
+                { id: 'number-to-letters', name: 'Launch Code Retrieval' }
+            ],
+            puzzleData: {
+                // Puzzle Data
+                'number-sequence': { sequence: '7, 8, 9, 11, 14, 19, ?', answer: 27, hint: 'The differences between numbers follow a sequence.' },
+                'color-sequence': {
+                    sequence: [],
+                    userClicks: [],
+                    colors: ['#ef4444', '#3b82f6', '#10b981', '#eab308', '#6366f1', '#f97316', '#a855f7', '#64748b', '#a9c8f2'],
+                    attemptsLeft: 3 // Added attempts for this puzzle
+                },
+                'email-archive': { key: 'ZYXWVUTSRQPONMLKJIHGFEDCBA', message: 'SVOOL', answer: 'HELLO' },
+                'radiation-shield': { solution: [0, 1, 2, 3, 4, 5, 6, 7, 8], moves: 0, maxMoves: 8, attemptsLeft: 3 },
+                'number-grid': {
+                    solution: [
+                        16, 3, 2, 13,
+                        5, 10, 11, 8,
+                        9, 6, 7, 12,
+                        4, 15, 14, 1
+                    ]
+                },
+                'ciphered-riddle': { riddle: 'I have cities, but no houses. I have mountains, but no trees. I have water, but no fish. What am-I?', answer: 'MAP' },
+                'morse-code': { message: '... --- ...', answer: 'SOS' },
+                'word-scramble': { word: 'THERMOSTAT', scrambled: 'ATHOTMRTES', hint: 'Regulates the rising heat.' },
+                'number-to-letters': { 
+                    sequence: '13-9-19-19-9-15-14 / 1-7-14-9', 
+                    answer: 'MISSION AGNI' 
+                }
+            },
+            solvedPuzzles: new Set()
+        };
+
+        const elements = {
+            landingPage: document.getElementById('landing-page'),
+            gamePage: document.getElementById('game-page'),
+            puzzleTitle: document.getElementById('puzzle-title'),
+            keysCollectedDisplay: document.getElementById('keys-collected-display'),
+            puzzleArea: document.getElementById('puzzle-area'),
+            messageArea: document.getElementById('message-area'),
+            navButtons: document.getElementById('navigation-buttons'),
+            timerDisplay: document.getElementById('timer-display'),
+            startBtn: document.getElementById('start-btn'),
+            tutorialBtn: document.getElementById('tutorial-btn'),
+            // Landing page vitals
+            vitalsLanding: document.getElementById('vitals-landing'),
+            oxygenBarLanding: document.getElementById('oxygen-bar-landing'),
+            tempBarLanding: document.getElementById('temp-bar-landing'),
+            powerBarLanding: document.getElementById('power-bar-landing'),
+            // Game page vitals
+            vitalsGame: document.getElementById('vitals-game'),
+            oxygenBarGame: document.getElementById('oxygen-bar-game'),
+            tempBarGame: document.getElementById('temp-bar-game'),
+            powerBarGame: document.getElementById('power-bar-game'),
+
+            tutorialModal: document.getElementById('tutorial-modal'),
+            closeTutorialBtn: document.getElementById('close-tutorial-btn')
+        };
+        
+        // --- Game Flow Functions ---
+
+        function shufflePuzzles() {
+            // Shuffle the array of puzzles at the start of the game
+            for (let i = gameState.puzzles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gameState.puzzles[i], gameState.puzzles[j]] = [gameState.puzzles[j], gameState.puzzles[i]];
+            }
+        }
+
+        function updateVitals() {
+            // Simulate vitals degradation
+            oxygenLevel -= 0.1;
+            temperature += 0.1;
+            powerLevel -= 0.1;
+
+            if (oxygenLevel < 0) oxygenLevel = 0;
+            if (temperature > 100) temperature = 100;
+            if (powerLevel < 0) powerLevel = 0;
+
+            // Update both sets of bars, only one is visible at a time
+            elements.oxygenBarLanding.style.width = `${oxygenLevel}%`;
+            elements.tempBarLanding.style.width = `${temperature}%`;
+            elements.powerBarLanding.style.width = `${powerLevel}%`;
+            
+            elements.oxygenBarGame.style.width = `${oxygenLevel}%`;
+            elements.tempBarGame.style.width = `${temperature}%`;
+            elements.powerBarGame.style.width = `${powerLevel}%`;
+        }
+
+        function startVitalsDegradation() {
+            vitalsInterval = setInterval(updateVitals, 1000);
+        }
+
+        function stopVitalsDegradation() {
+            clearInterval(vitalsInterval);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showGameOver();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(gameState.timeLeft / 60);
+            const seconds = gameState.timeLeft % 60;
+            elements.timerDisplay.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+        
+        function updateKeysDisplay() {
+            elements.keysCollectedDisplay.textContent = `Keys Collected: ${gameState.keysCollected} / 8`;
+        }
+
+        function startGame() {
+            elements.landingPage.classList.add('hidden');
+            elements.gamePage.classList.remove('hidden');
+            // We keep the vitals degradation running, but now they update the game page bars
+            // The degradation started on DOMContentLoaded, so no need to restart it here.
+            
+            shufflePuzzles();
+            startTimer();
+            renderCurrentPuzzle();
+            updateKeysDisplay();
+        }
+
+        function renderCurrentPuzzle() {
+            // Find the next unsolved puzzle
+            let currentPuzzle;
+            do {
+                currentPuzzle = gameState.puzzles[gameState.currentPuzzleIndex];
+                if (gameState.solvedPuzzles.has(currentPuzzle.id)) {
+                    gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % gameState.puzzles.length;
+                } else {
+                    break;
+                }
+            } while (true);
+
+            elements.puzzleTitle.textContent = currentPuzzle.name;
+            elements.puzzleArea.innerHTML = ''; // Clear previous puzzle
+            elements.messageArea.textContent = '';
+            
+            // Render the appropriate puzzle based on ID
+            switch (currentPuzzle.id) {
+                case 'number-sequence': renderNumberSequence(); break;
+                case 'color-sequence': renderColorSequence(); break;
+                case 'email-archive': renderEmailArchive(); break;
+                case 'radiation-shield': renderRadiationShield(); break;
+                case 'number-grid': renderNumberGrid(); break;
+                case 'ciphered-riddle': renderCipheredRiddle(); break;
+                case 'morse-code': renderMorseCode(); break;
+                case 'word-scramble': renderWordScramble(); break;
+                case 'number-to-letters': renderNumberToLetters(); break;
+            }
+            renderNavButtons();
+        }
+
+        function renderNavButtons() {
+            elements.navButtons.innerHTML = '';
+            const currentPuzzle = gameState.puzzles[gameState.currentPuzzleIndex];
+
+            // Submit button
+            const submitBtn = document.createElement('button');
+            submitBtn.textContent = 'Submit';
+            submitBtn.className = 'px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full shadow-lg transform transition-transform duration-200 hover:scale-105';
+            submitBtn.onclick = () => checkSolution(currentPuzzle.id);
+            elements.navButtons.appendChild(submitBtn);
+
+            // Skip button
+            const skipBtn = document.createElement('button');
+            skipBtn.textContent = `Skip Puzzle`;
+            skipBtn.className = 'px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-full shadow-lg transform transition-transform duration-200 hover:scale-105';
+            skipBtn.disabled = gameState.skipsUsed >= 1;
+            skipBtn.onclick = () => nextPuzzle(true); // Pass true to indicate a skip
+            elements.navButtons.appendChild(skipBtn);
+
+            // Previous Puzzle button (only if a skip has occurred)
+            if (gameState.previousPuzzleIndex !== -1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = 'Previous Puzzle';
+                prevBtn.className = 'px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full shadow-lg transform transition-transform duration-200 hover:scale-105';
+                prevBtn.onclick = () => {
+                    gameState.currentPuzzleIndex = gameState.previousPuzzleIndex;
+                    gameState.previousPuzzleIndex = -1; // Reset previous puzzle index
+                    renderCurrentPuzzle();
+                    elements.messageArea.textContent = 'Returning to previous puzzle.';
+                };
+                elements.navButtons.appendChild(prevBtn);
+            }
+
+            // Play Morse Signal button for the specific puzzle
+            if (currentPuzzle.id === 'morse-code') {
+                const playMorseBtn = document.createElement('button');
+                playMorseBtn.textContent = 'Play Signal';
+                playMorseBtn.className = 'px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full shadow-lg transform transition-transform duration-200 hover:scale-105';
+                playMorseBtn.onclick = () => playMorseSignal();
+                elements.navButtons.prepend(playMorseBtn);
+            }
+        }
+
+        function checkSolution(puzzleId) {
+            let isCorrect = false;
+            switch (puzzleId) {
+                case 'number-sequence': isCorrect = checkNumberSequence(); break;
+                case 'color-sequence': isCorrect = checkColorSequence(); break;
+                case 'email-archive': isCorrect = checkEmailArchive(); break;
+                case 'radiation-shield': isCorrect = checkRadiationShield(); break;
+                case 'number-grid': isCorrect = checkNumberGrid(); break;
+                case 'ciphered-riddle': isCorrect = checkCipheredRiddle(); break;
+                case 'morse-code': isCorrect = checkMorseCode(); break;
+                case 'word-scramble': isCorrect = checkWordScramble(); break;
+                case 'number-to-letters': isCorrect = checkNumberToLetters(); break;
+            }
+            
+            if (isCorrect) {
+                elements.messageArea.textContent = '✅ Correct! Key collected.';
+                if (!gameState.solvedPuzzles.has(puzzleId)) {
+                    gameState.solvedPuzzles.add(puzzleId);
+                    gameState.keysCollected++;
+                }
+                updateKeysDisplay();
+
+                if (gameState.keysCollected >= 8) {
+                    setTimeout(() => showGameComplete(), 1500);
+                } else {
+                    setTimeout(() => nextPuzzle(), 1500);
+                }
+            } else {
+                // Special handling for puzzles with multiple attempts
+                const data = gameState.puzzleData[puzzleId];
+                if (data && data.attemptsLeft !== undefined) {
+                    data.attemptsLeft--;
+                    if (data.attemptsLeft > 0) {
+                        elements.messageArea.textContent = `❌ Incorrect. You have ${data.attemptsLeft} attempt${data.attemptsLeft > 1 ? 's' : ''} left.`;
+                        // Re-render the puzzle to reset it (if needed, like radiation shield)
+                        if (puzzleId === 'radiation-shield') {
+                            setTimeout(() => renderRadiationShield(), 2000);
+                        } else if (puzzleId === 'color-sequence') {
+                             data.userClicks = []; // Reset clicks
+                             document.getElementById('start-color-sequence').disabled = false;
+                             document.getElementById('attempts-counter').textContent = data.attemptsLeft;
+                        }
+                        return; // Don't proceed to the next puzzle yet
+                    } else {
+                        // Final fail
+                        elements.messageArea.textContent = `❌ Failed to solve the puzzle. No key collected.`;
+                        setTimeout(() => nextPuzzle(), 1500);
+                    }
+                } else {
+                    elements.messageArea.textContent = '❌ Incorrect. Try again.';
+                }
+            }
+        }
+
+        function nextPuzzle(isSkipping = false) {
+            if (isSkipping) {
+                if (gameState.skipsUsed >= 1) {
+                    elements.messageArea.textContent = '❌ No skips left!';
+                    return;
+                }
+                gameState.skipsUsed++;
+                gameState.previousPuzzleIndex = gameState.currentPuzzleIndex; // Save the index of the skipped puzzle
+                elements.messageArea.textContent = 'Puzzle skipped. You can go back to it later.';
+            }
+
+            gameState.currentPuzzleIndex = (gameState.currentPuzzleIndex + 1) % gameState.puzzles.length;
+            renderCurrentPuzzle();
+        }
+
+        function showGameComplete() {
+            clearInterval(timerInterval);
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-4xl text-green-400">🚀 Launch Successful!</p>
+                    <p class="text-xl">You have collected 8 keys and activated the final protocol. The escape pod has been launched and you are safe. Congratulations!</p>
+                </div>
+            `;
+            elements.puzzleTitle.textContent = "Mission Complete";
+            elements.keysCollectedDisplay.textContent = "";
+            elements.messageArea.textContent = "";
+            elements.navButtons.innerHTML = "";
+            elements.timerDisplay.style.display = 'none';
+        }
+
+        function showGameOver() {
+            clearInterval(timerInterval);
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-4xl text-red-400">💀 Game Over</p>
+                    <p class="text-xl">The Maya virus has taken over the system. The escape pod launch protocol failed.</p>
+                </div>
+            `;
+            elements.puzzleTitle.textContent = "Protocol Failed";
+            elements.keysCollectedDisplay.textContent = "";
+            elements.messageArea.textContent = "";
+            elements.navButtons.innerHTML = "";
+            elements.timerDisplay.style.display = 'none';
+        }
+
+        // --- Individual Puzzle Rendering and Logic ---
+
+        function renderNumberSequence() {
+            const data = gameState.puzzleData['number-sequence'];
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">The Maya virus is disrupting oxygen flow. Re-calibrate the system by entering the next number in the sequence.</p>
+                    <p class="text-4xl font-bold text-red-400 my-4">${data.sequence}</p>
+                    <input type="text" id="sequence-input" class="w-full max-w-sm px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Enter the next number">
+                </div>
+            `;
+        }
+        
+        function checkNumberSequence() {
+            const input = parseInt(document.getElementById('sequence-input').value);
+            const data = gameState.puzzleData['number-sequence'];
+            return input === data.answer;
+        }
+
+        function renderColorSequence() {
+            const data = gameState.puzzleData['color-sequence'];
+            data.userClicks = []; // Reset user clicks for a new attempt
+            
+            // Re-generate a new sequence for each attempt
+            const newSequence = [];
+            const colorsCopy = [...data.colors];
+            for (let i = 0; i < 5; i++) { // Generate a sequence of 5 colors
+                const randomIndex = Math.floor(Math.random() * colorsCopy.length);
+                newSequence.push(colorsCopy[randomIndex]);
+            }
+            data.sequence = newSequence;
+
+            let colorButtonsHtml = `<div class="space-y-4">
+                <p class="text-lg">The system core is flashing a sequence to override the virus. Remember and repeat the sequence of colored lights.</p>
+                <p class="text-sm italic">Attempts left: <span id="attempts-counter" class="font-bold text-yellow-400">${data.attemptsLeft}</span></p>
+                <button id="start-color-sequence" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full shadow-lg transform transition-transform duration-200">Start Sequence</button>
+                <div id="color-buttons" class="color-grid-3x3 mt-4">`;
+            data.colors.forEach(color => {
+                 colorButtonsHtml += `<button class="color-button" data-color="${color}" style="background-color: ${color};"></button>`;
+            });
+            colorButtonsHtml += `</div></div>`;
+            elements.puzzleArea.innerHTML = colorButtonsHtml;
+
+            const startButton = document.getElementById('start-color-sequence');
+            startButton.addEventListener('click', () => {
+                flashSequence(data.sequence);
+                startButton.disabled = true; // Disable the button after it's clicked
+            });
+
+            const buttons = document.querySelectorAll('#color-buttons .color-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const color = e.target.dataset.color;
+                    data.userClicks.push(color);
+                    elements.messageArea.textContent = `Clicks: ${data.userClicks.length}/${data.sequence.length}`;
+                });
+            });
+        }
+
+        function flashSequence(sequence) {
+            let i = 0;
+            const buttons = document.querySelectorAll('#color-buttons .color-button');
+            const interval = setInterval(() => {
+                if (i >= sequence.length) {
+                    clearInterval(interval);
+                    elements.messageArea.textContent = `Now it's your turn.`;
+                    return;
+                }
+                const colorToFlash = sequence[i];
+                const button = Array.from(buttons).find(btn => btn.dataset.color === colorToFlash);
+                
+                if (button) {
+                    button.classList.add('highlight');
+                    setTimeout(() => {
+                        button.classList.remove('highlight');
+                    }, 500);
+                }
+                i++;
+            }, 1000);
+        }
+
+        function checkColorSequence() {
+            const data = gameState.puzzleData['color-sequence'];
+            if (data.userClicks.length !== data.sequence.length) {
+                return false;
+            }
+
+            let isCorrect = true;
+            for (let i = 0; i < data.sequence.length; i++) {
+                if (data.userClicks[i] !== data.sequence[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            // Reset user clicks regardless of outcome
+            data.userClicks = [];
+            return isCorrect;
+        }
+
+        function renderEmailArchive() {
+            const data = gameState.puzzleData['email-archive'];
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">Decipher the encrypted log entry using cipher and greet the Maya virus and request for the code.</p>
+                    <p class="text-2xl font-bold text-red-400 my-4">${data.message}</p>
+                    <input type="text" id="email-input" class="w-full max-w-sm px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Enter decrypted message">
+                </div>
+            `;
+        }
+
+        function checkEmailArchive() {
+            const input = document.getElementById('email-input').value.toUpperCase().trim();
+            const data = gameState.puzzleData['email-archive'];
+            return input === data.answer;
+        }
+
+        function renderRadiationShield() {
+            const data = gameState.puzzleData['radiation-shield'];
+            data.moves = 0; // Reset moves
+            
+            // Re-scramble the pieces for each attempt
+            const pieces = Array.from({ length: 9 }, (_, i) => i);
+            pieces.sort(() => Math.random() - 0.5); 
+
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">A part of the radiation shield has been scrambled. Re-assemble the pieces by dragging them into the correct order from 0 to 8.</p>
+                    <p class="text-sm">Moves: <span id="moves-counter">0</span> / ${data.maxMoves}</p>
+                    <p class="text-sm font-bold text-red-400">Attempts left: <span id="attempts-counter">${data.attemptsLeft}</span></p>
+                    <div id="shield-assembly-grid" class="puzzle-grid-3x3"></div>
+                </div>
+            `;
+            const grid = document.getElementById('shield-assembly-grid');
+            
+            for (let i = 0; i < 9; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'puzzle-tile';
+                tile.draggable = true;
+                tile.dataset.piece = pieces[i];
+                tile.textContent = pieces[i];
+                tile.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.piece);
+                });
+                tile.addEventListener('dragover', (e) => e.preventDefault());
+                tile.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    if (data.moves >= data.maxMoves) {
+                        elements.messageArea.textContent = '❌ Move limit reached. Try again.';
+                        return;
+                    }
+                    
+                    const draggedPiece = e.dataTransfer.getData('text/plain');
+                    const targetPiece = e.target.closest('.puzzle-tile').dataset.piece;
+                    const draggedTile = document.querySelector(`[data-piece="${draggedPiece}"]`);
+                    const targetTile = document.querySelector(`[data-piece="${targetPiece}"]`);
+                    
+                    const draggedText = draggedTile.textContent;
+                    const targetText = targetTile.textContent;
+                    
+                    draggedTile.textContent = targetText;
+                    targetTile.textContent = draggedText;
+                    
+                    draggedTile.dataset.piece = targetPiece;
+                    targetTile.dataset.piece = draggedPiece;
+                    
+                    data.moves++;
+                    document.getElementById('moves-counter').textContent = data.moves;
+                });
+                grid.appendChild(tile);
+            }
+        }
+        
+        function checkRadiationShield() {
+            const data = gameState.puzzleData['radiation-shield'];
+            if (data.moves > data.maxMoves) {
+                return false;
+            }
+
+            const grid = document.getElementById('shield-assembly-grid');
+            const tiles = Array.from(grid.querySelectorAll('.puzzle-tile'));
+            const currentOrder = Array.from(tiles).map(t => parseInt(t.textContent));
+            const solution = data.solution;
+
+            let isCorrect = true;
+            for(let i = 0; i < currentOrder.length; i++) {
+                if (currentOrder[i] !== solution[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            return isCorrect;
+        }
+
+        function renderNumberGrid() {
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">Temperature is rising. Recalibrate the thermodynamic matrix by arranging the tiles so each row, column, and the main diagonals sum to 34.</p>
+                    <div id="number-grid-board" class="magic-square-grid"></div>
+                </div>
+            `;
+            const grid = document.getElementById('number-grid-board');
+            const tiles = Array.from({ length: 16 }, (_, i) => i + 1);
+            tiles.sort(() => Math.random() - 0.5); // Shuffle pieces
+            
+            for (let i = 0; i < 16; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'magic-square-cell';
+                tile.draggable = true;
+                tile.id = `magic-tile-${i}`; // Give each tile a unique ID
+                tile.textContent = tiles[i];
+                tile.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.id); // Set the ID of the dragged element
+                });
+                tile.addEventListener('dragover', (e) => e.preventDefault());
+                tile.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    const targetTile = e.target.closest('.magic-square-cell');
+                    const draggedTile = document.getElementById(draggedId);
+                    
+                    if (draggedTile && targetTile && draggedTile !== targetTile) {
+                        const tempText = draggedTile.textContent;
+                        draggedTile.textContent = targetTile.textContent;
+                        targetTile.textContent = tempText;
+                    }
+                });
+                grid.appendChild(tile);
+            }
+        }
+        
+        function checkNumberGrid() {
+            const data = gameState.puzzleData['number-grid'];
+            const grid = document.getElementById('number-grid-board');
+            const tiles = Array.from(grid.querySelectorAll('.magic-square-cell'));
+            const values = tiles.map(t => parseInt(t.textContent));
+            
+            // Check rows and columns
+            for (let i = 0; i < 4; i++) {
+                const rowSum = values[i*4] + values[i*4+1] + values[i*4+2] + values[i*4+3];
+                const colSum = values[i] + values[i+4] + values[i+8] + values[i+12];
+                if (rowSum !== 34 || colSum !== 34) return false;
+            }
+            
+            // Check diagonals
+            const diag1Sum = values[0] + values[5] + values[10] + values[15];
+            const diag2Sum = values[3] + values[6] + values[9] + values[12];
+            if (diag1Sum !== 34 || diag2Sum !== 34) return false;
+            
+            return true;
+        }
+
+        function renderCipheredRiddle() {
+            const data = gameState.puzzleData['ciphered-riddle'];
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg font-bold text-yellow-400">The system is asking for a diagnostic. Answer the following riddle: "${data.riddle}"</p>
+                    <input type="text" id="riddle-input" class="w-full max-w-sm px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Enter your answer">
+                </div>
+            `;
+        }
+
+        function checkCipheredRiddle() {
+            const input = document.getElementById('riddle-input').value.toUpperCase().trim();
+            return input === gameState.puzzleData['ciphered-riddle'].answer;
+        }
+
+        function renderMorseCode() {
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">Power is failing. A distress signal is being sent from the core. Decipher the blinking light to reactivate the main power.</p>
+                    <div id="morse-light" class="morse-light"></div>
+                    <input type="text" id="morse-input" class="w-full max-w-sm px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Enter the decoded message">
+                </div>
+            `;
+        }
+        
+        function playMorseSignal() {
+            const light = document.getElementById('morse-light');
+            const morseCode = { '.': 200, '-': 600, ' ': 600 };
+            const message = gameState.puzzleData['morse-code'].message;
+            let i = 0;
+            
+            function transmit() {
+                if (i >= message.length) {
+                    light.classList.remove('blinking');
+                    return;
+                }
+                const char = message[i];
+                const duration = morseCode[char];
+                
+                if (char !== ' ') {
+                    light.classList.add('blinking');
+                }
+                
+                setTimeout(() => {
+                    light.classList.remove('blinking');
+                    setTimeout(() => {
+                        i++;
+                        transmit();
+                    }, 200);
+                }, duration);
+            }
+            
+            transmit();
+        }
+
+        function checkMorseCode() {
+            const input = document.getElementById('morse-input').value.toUpperCase().trim();
+            return input === gameState.puzzleData['morse-code'].answer;
+        }
+
+        function renderWordScramble() {
+            const data = gameState.puzzleData['word-scramble'];
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">The virus has scrambled the system password. Unscramble the letters and use key word to Regulates the rising heat.</p>
+                    <p class="text-4xl font-bold text-red-400 tracking-widest my-4">${data.scrambled}</p>
+                    <input type="text" id="scramble-input" class="w-full max-w-sm px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Enter the word">
+                </div>
+            `;
+        }
+
+        function checkWordScramble() {
+            const input = document.getElementById('scramble-input').value.toUpperCase().trim();
+            return input === gameState.puzzleData['word-scramble'].word;
+        }
+
+        function renderNumberToLetters() {
+            const data = gameState.puzzleData['number-to-letters'];
+            elements.puzzleArea.innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg">A cipher is required to retrieve the launch codes. Enter the two parts of the code to begin the launch sequence.</p>
+                    <p class="text-2xl font-bold text-blue-300 my-4">${data.sequence}</p>
+                    <div class="flex justify-center space-x-4">
+                        <input type="text" id="number-to-letters-input-1" class="px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="First Word">
+                        <input type="text" id="number-to-letters-input-2" class="px-4 py-2 bg-gray-700 text-white rounded-md text-center" placeholder="Second Word">
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkNumberToLetters() {
+            const input1 = document.getElementById('number-to-letters-input-1').value.toUpperCase().trim();
+            const input2 = document.getElementById('number-to-letters-input-2').value.toUpperCase().trim();
+            const parts = gameState.puzzleData['number-to-letters'].answer.split(' ');
+            return input1 === parts[0] && input2 === parts[1];
+        }
+
+
+        elements.startBtn.addEventListener('click', () => {
+            startGame();
+        });
+
+        elements.tutorialBtn.addEventListener('click', () => {
+             elements.tutorialModal.classList.remove('hidden');
+        });
+
+        elements.closeTutorialBtn.addEventListener('click', () => {
+             elements.tutorialModal.classList.add('hidden');
+        });
+
+        startVitalsDegradation(); 
+    });
+</script>
+
+</body>
+</html>
